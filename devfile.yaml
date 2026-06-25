@@ -27,7 +27,7 @@ commands:
   - id: install-opencode
     exec:
       component: tools
-      commandLine: "curl -fsSL https://opencode.ai/install | bash && . ~/.bashrc"
+      commandLine: "sleep 3 && curl -fsSL https://opencode.ai/install | bash"
       workingDir: ${PROJECTS_ROOT}
       group:
         kind: build
