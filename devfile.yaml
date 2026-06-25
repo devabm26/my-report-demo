@@ -1,0 +1,37 @@
+schemaVersion: 2.3.0
+metadata:
+  name: ai-vibe-tool
+components:
+  - name: tools
+    container:
+      image: quay.io/devfile/universal-developer-image:ubi9-latest
+      memoryRequest: 1Gi
+      memoryLimit: 16Gi
+      cpuLimit: '4'
+      cpuRequest: '0.5'
+      env:
+        - name: DOCKER
+          value: podman
+      endpoints:
+        - name: streamlit-ui
+          targetPort: 8501
+          exposure: public
+          protocol: http
+          secure: true
+        - name: flask-ui
+          targetPort: 8080
+          exposure: public
+          protocol: http
+          secure: true  
+commands:
+  - id: install-opencode
+    exec:
+      component: tools
+      commandLine: "curl -fsSL https://opencode.ai/install | bash && . ~/.bashrc"
+      workingDir: ${PROJECTS_ROOT}
+      group:
+        kind: build
+        isDefault: true
+events:
+  postStart:
+    - install-opencode        
