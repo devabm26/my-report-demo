@@ -10,253 +10,249 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #f0f2f5;
-      color: #222;
+      color: #1a1a2e;
       min-height: 100vh;
     }
 
     header {
-      background: #1a1a2e;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
       color: #fff;
-      padding: 1.25rem 2rem;
+      padding: 1.5rem 2rem;
       display: flex;
       align-items: center;
       gap: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
     }
-    header h1 { font-size: 1.4rem; font-weight: 600; letter-spacing: 0.02em; }
-    header span { font-size: 0.85rem; color: #aaa; margin-left: auto; }
+    header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: 0.5px; }
+    header span { font-size: 0.9rem; opacity: 0.7; margin-left: auto; }
 
-    .container { max-width: 1400px; margin: 0 auto; padding: 1.5rem 1.5rem 3rem; }
+    main { padding: 2rem; max-width: 1600px; margin: 0 auto; }
+
+    .error-banner {
+      background: #fff0f0;
+      border: 1px solid #e53e3e;
+      border-left: 4px solid #e53e3e;
+      color: #c53030;
+      padding: 1rem 1.25rem;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+    }
+    .error-banner strong { display: block; margin-bottom: 0.25rem; }
 
     /* Summary cards */
-    .cards {
+    .summary-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 1rem;
-      margin-bottom: 1.75rem;
+      margin-bottom: 2rem;
     }
     .card {
       background: #fff;
       border-radius: 10px;
-      padding: 1.1rem 1.25rem;
-      box-shadow: 0 1px 4px rgba(0,0,0,.08);
-      border-top: 4px solid #ccc;
+      padding: 1.25rem 1rem;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      border-top: 4px solid #cbd5e0;
     }
-    .card.total   { border-color: #5865f2; }
-    .card.approved { border-color: #2ecc71; }
-    .card.rejected { border-color: #e74c3c; }
-    .card.in_review { border-color: #f39c12; }
-    .card.removed  { border-color: #95a5a6; }
-    .card-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 0.4rem; }
-    .card-value { font-size: 2rem; font-weight: 700; color: #1a1a2e; }
+    .card .value { font-size: 2rem; font-weight: 700; line-height: 1; }
+    .card .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.8px; color: #718096; margin-top: 0.4rem; }
+    .card.total  { border-color: #667eea; } .card.total  .value { color: #667eea; }
+    .card.approved { border-color: #48bb78; } .card.approved .value { color: #38a169; }
+    .card.rejected { border-color: #fc8181; } .card.rejected .value { color: #e53e3e; }
+    .card.in_review { border-color: #f6ad55; } .card.in_review .value { color: #dd6b20; }
+    .card.removed  { border-color: #a0aec0; } .card.removed  .value { color: #718096; }
 
-    /* Filters */
-    .toolbar {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
+    /* Table section */
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #2d3748;
       margin-bottom: 1rem;
-      flex-wrap: wrap;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #e2e8f0;
     }
-    .toolbar label { font-size: 0.85rem; color: #555; }
-    .toolbar select, .toolbar input {
-      border: 1px solid #d0d0d0;
-      border-radius: 6px;
-      padding: 0.4rem 0.7rem;
-      font-size: 0.85rem;
-      background: #fff;
-      outline: none;
-    }
-    .toolbar select:focus, .toolbar input:focus { border-color: #5865f2; }
-    .count { margin-left: auto; font-size: 0.82rem; color: #777; }
 
-    /* Table */
-    .table-wrap {
+    .table-wrapper {
       background: #fff;
       border-radius: 10px;
-      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
       overflow: auto;
     }
-    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    thead {
+      background: #2d3748;
+      color: #e2e8f0;
+      position: sticky;
+      top: 0;
+    }
     thead th {
-      background: #1a1a2e;
-      color: #e0e0e0;
-      padding: 0.75rem 1rem;
+      padding: 0.85rem 1rem;
       text-align: left;
-      font-weight: 500;
-      font-size: 0.78rem;
+      font-weight: 600;
+      font-size: 0.75rem;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.6px;
       white-space: nowrap;
     }
-    tbody tr { border-bottom: 1px solid #f0f0f0; transition: background 0.1s; }
+    tbody tr {
+      border-bottom: 1px solid #edf2f7;
+      transition: background 0.15s;
+    }
     tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: #f7f8ff; }
-    td { padding: 0.7rem 1rem; vertical-align: top; }
+    tbody tr:hover { background: #f7fafc; }
 
-    .content-cell { max-width: 380px; }
-    .content-text { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.45; }
+    td {
+      padding: 0.75rem 1rem;
+      vertical-align: top;
+    }
 
-    .author { font-weight: 600; white-space: nowrap; }
+    .content-cell {
+      max-width: 380px;
+      line-height: 1.5;
+      color: #2d3748;
+    }
+    .author-cell { white-space: nowrap; font-weight: 500; color: #4a5568; }
 
     /* Status badges */
     .badge {
       display: inline-block;
-      padding: 0.2rem 0.6rem;
-      border-radius: 99px;
-      font-size: 0.72rem;
-      font-weight: 600;
+      padding: 0.2rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.7rem;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.5px;
       white-space: nowrap;
     }
-    .badge-APPROVED  { background: #d4f7e7; color: #1a7a4a; }
-    .badge-REJECTED  { background: #fde8e8; color: #c0392b; }
-    .badge-IN_REVIEW { background: #fef3d0; color: #9a6400; }
-    .badge-REMOVED   { background: #ececec; color: #666; }
+    .badge-APPROVED  { background: #c6f6d5; color: #276749; }
+    .badge-REJECTED  { background: #fed7d7; color: #9b2335; }
+    .badge-IN_REVIEW { background: #feebc8; color: #7b341e; }
+    .badge-REMOVED   { background: #e2e8f0; color: #4a5568; }
 
-    /* Numeric columns */
+    /* Rating cells */
     .num { text-align: right; font-variant-numeric: tabular-nums; }
-    .net-pos { color: #2ecc71; font-weight: 600; }
-    .net-neg { color: #e74c3c; font-weight: 600; }
+    .thumbs-up   { color: #38a169; font-weight: 600; }
+    .thumbs-down { color: #e53e3e; font-weight: 600; }
+    .net-positive { color: #38a169; font-weight: 700; }
+    .net-negative { color: #e53e3e; font-weight: 700; }
+    .net-zero     { color: #718096; }
 
-    /* Similarity */
-    .sim-bar-wrap { display: flex; align-items: center; gap: 0.5rem; }
-    .sim-bar-bg { flex: 1; height: 6px; background: #eee; border-radius: 99px; min-width: 60px; }
-    .sim-bar { height: 100%; border-radius: 99px; }
-    .sim-val { font-size: 0.8rem; white-space: nowrap; font-variant-numeric: tabular-nums; min-width: 46px; text-align: right; }
+    .similarity { font-variant-numeric: tabular-nums; color: #553c9a; }
 
-    /* Error */
-    .error-box {
-      background: #fde8e8; border: 1px solid #e74c3c; border-radius: 8px;
-      padding: 1rem 1.25rem; color: #c0392b; font-size: 0.9rem;
-      margin-bottom: 1rem;
+    .no-data {
+      text-align: center;
+      padding: 3rem;
+      color: #a0aec0;
+      font-style: italic;
     }
 
-    .empty { text-align: center; padding: 3rem; color: #aaa; font-size: 0.95rem; }
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.8rem;
+      color: #a0aec0;
+    }
   </style>
 </head>
 <body>
+
 <header>
   <h1>Thoughts Dashboard</h1>
   <span>Positive Thoughts Application &mdash; Reporting View</span>
 </header>
 
-<div class="container">
+<main>
 
   {% if error %}
-  <div class="error-box">
-    <strong>Database error:</strong> {{ error }}
+  <div class="error-banner">
+    <strong>Database connection error</strong>
+    {{ error }}
   </div>
   {% endif %}
 
   {% if summary %}
-  <div class="cards">
+  <div class="summary-grid">
     <div class="card total">
-      <div class="card-label">Total</div>
-      <div class="card-value">{{ summary.total }}</div>
+      <div class="value">{{ summary.total }}</div>
+      <div class="label">Total</div>
     </div>
     <div class="card approved">
-      <div class="card-label">Approved</div>
-      <div class="card-value">{{ summary.approved }}</div>
+      <div class="value">{{ summary.approved }}</div>
+      <div class="label">Approved</div>
     </div>
     <div class="card rejected">
-      <div class="card-label">Rejected</div>
-      <div class="card-value">{{ summary.rejected }}</div>
+      <div class="value">{{ summary.rejected }}</div>
+      <div class="label">Rejected</div>
     </div>
     <div class="card in_review">
-      <div class="card-label">In Review</div>
-      <div class="card-value">{{ summary.in_review }}</div>
+      <div class="value">{{ summary.in_review }}</div>
+      <div class="label">In Review</div>
     </div>
     <div class="card removed">
-      <div class="card-label">Removed</div>
-      <div class="card-value">{{ summary.removed }}</div>
+      <div class="value">{{ summary.removed }}</div>
+      <div class="label">Removed</div>
     </div>
   </div>
   {% endif %}
 
-  <div class="toolbar">
-    <label for="statusFilter">Status:</label>
-    <select id="statusFilter" onchange="filterTable()">
-      <option value="">All</option>
-      <option value="APPROVED">Approved</option>
-      <option value="REJECTED">Rejected</option>
-      <option value="IN_REVIEW">In Review</option>
-      <option value="REMOVED">Removed</option>
-    </select>
+  <div class="section-title">All Thoughts</div>
 
-    <label for="search">Search:</label>
-    <input id="search" type="text" placeholder="content or author..." oninput="filterTable()">
-
-    <span class="count" id="rowCount"></span>
-  </div>
-
-  <div class="table-wrap">
-    <table id="thoughtsTable">
+  <div class="table-wrapper">
+    <table>
       <thead>
         <tr>
+          <th>#</th>
           <th>Content</th>
           <th>Author</th>
           <th>Status</th>
           <th class="num">Thumbs Up</th>
           <th class="num">Thumbs Down</th>
           <th class="num">Net Rating</th>
-          <th>Similarity Score</th>
+          <th class="num">Similarity Score</th>
         </tr>
       </thead>
       <tbody>
-        {% for t in thoughts %}
-        <tr data-status="{{ t.status }}">
-          <td class="content-cell">
-            <div class="content-text">{{ t.content }}</div>
-          </td>
-          <td class="author">{{ t.author }}</td>
-          <td><span class="badge badge-{{ t.status }}">{{ t.status.replace('_', ' ') }}</span></td>
-          <td class="num">{{ t.thumbs_up }}</td>
-          <td class="num">{{ t.thumbs_down }}</td>
-          <td class="num {% if t.net_rating > 0 %}net-pos{% elif t.net_rating < 0 %}net-neg{% endif %}">
-            {% if t.net_rating > 0 %}+{% endif %}{{ t.net_rating }}
-          </td>
-          <td>
-            {% if t.similarity_score is not none %}
-            {% set pct = (t.similarity_score | float * 100) | round(1) %}
-            {% set color = '#e74c3c' if t.similarity_score | float >= 0.85 else ('#f39c12' if t.similarity_score | float >= 0.5 else '#2ecc71') %}
-            <div class="sim-bar-wrap">
-              <div class="sim-bar-bg">
-                <div class="sim-bar" style="width:{{ [pct,100]|min }}%; background:{{ color }};"></div>
-              </div>
-              <span class="sim-val">{{ "%.4f"|format(t.similarity_score|float) }}</span>
-            </div>
-            {% else %}
-            <span style="color:#bbb;font-size:0.8rem;">N/A</span>
-            {% endif %}
-          </td>
-        </tr>
+        {% if thoughts %}
+          {% for t in thoughts %}
+          <tr>
+            <td style="color:#a0aec0; white-space:nowrap;">{{ loop.index }}</td>
+            <td class="content-cell">{{ t.content }}</td>
+            <td class="author-cell">{{ t.author }}</td>
+            <td>
+              <span class="badge badge-{{ t.status }}">{{ t.status.replace('_', ' ') }}</span>
+            </td>
+            <td class="num thumbs-up">{{ t.thumbs_up }}</td>
+            <td class="num thumbs-down">{{ t.thumbs_down }}</td>
+            <td class="num {% if t.net_rating > 0 %}net-positive{% elif t.net_rating < 0 %}net-negative{% else %}net-zero{% endif %}">
+              {% if t.net_rating > 0 %}+{% endif %}{{ t.net_rating }}
+            </td>
+            <td class="num similarity">
+              {% if t.similarity_score is not none %}
+                {{ "%.4f"|format(t.similarity_score|float) }}
+              {% else %}
+                <span style="color:#cbd5e0;">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
         {% else %}
-        <tr><td colspan="7" class="empty">No thoughts found.</td></tr>
-        {% endfor %}
+          <tr><td colspan="8" class="no-data">No thoughts found.</td></tr>
+        {% endif %}
       </tbody>
     </table>
   </div>
 
-</div>
+</main>
 
-<script>
-  function filterTable() {
-    const status = document.getElementById('statusFilter').value.toLowerCase();
-    const search = document.getElementById('search').value.toLowerCase();
-    const rows = document.querySelectorAll('#thoughtsTable tbody tr[data-status]');
-    let visible = 0;
-    rows.forEach(row => {
-      const rowStatus = (row.dataset.status || '').toLowerCase();
-      const text = row.textContent.toLowerCase();
-      const matchStatus = !status || rowStatus === status;
-      const matchSearch = !search || text.includes(search);
-      row.style.display = (matchStatus && matchSearch) ? '' : 'none';
-      if (matchStatus && matchSearch) visible++;
-    });
-    document.getElementById('rowCount').textContent = `${visible} of ${rows.length} rows`;
-  }
-  filterTable();
-</script>
+<footer>
+  Thoughts Dashboard &mdash; {{ thoughts|length }} record(s) displayed
+</footer>
+
 </body>
 </html>
