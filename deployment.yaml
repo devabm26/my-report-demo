@@ -1,0 +1,108 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-report-demo
+  namespace: thoughts-app
+  labels:
+    app: my-report-demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-report-demo
+  template:
+    metadata:
+      labels:
+        app: my-report-demo
+    spec:
+      containers:
+        - name: my-report-demo
+          image: my-report-demo:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: DB_HOST
+              value: "postgresql.thoughts-app.svc.cluster.local"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "thoughts"
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: my-report-demo-db-secret
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: my-report-demo-db-secret
+                  key: password
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: my-report-demo-db-secret
+  namespace: thoughts-app
+type: Opaque
+stringData:
+  username: thoughts
+  password: thoughts123
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-report-demo
+  namespace: thoughts-app
+  labels:
+    app: my-report-demo
+spec:
+  selector:
+    app: my-report-demo
+  ports:
+    - port: 8080
+      targetPort: 8080
+      protocol: TCP
+
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: my-report-demo
+  namespace: thoughts-app
+  labels:
+    app: my-report-demo
+spec:
+  host: my-report-demo-thoughts-app.apps.cluster-6pfqs.6pfqs.sandbox2325.opentlc.com
+  to:
+    kind: Service
+    name: my-report-demo
+  port:
+    targetPort: 8080
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
