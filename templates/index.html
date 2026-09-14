@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thoughts Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #c00 0%, #8b0000 100%);
+      color: #fff;
+      padding: 24px 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.5px; }
+    header span { font-size: 0.95rem; opacity: .8; margin-left: auto; }
+
+    main { padding: 28px 32px; max-width: 1600px; margin: 0 auto; }
+
+    /* ── Summary cards ── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,.1);
+      border-top: 4px solid #ccc;
+    }
+    .card.total   { border-color: #555; }
+    .card.approved{ border-color: #22c55e; }
+    .card.rejected{ border-color: #ef4444; }
+    .card.review  { border-color: #f59e0b; }
+    .card.removed { border-color: #6b7280; }
+    .card .num  { font-size: 2.2rem; font-weight: 800; line-height: 1; }
+    .card .lbl  { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-top: 6px; }
+
+    /* ── Error banner ── */
+    .error {
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      border-radius: 8px;
+      padding: 16px 20px;
+      color: #dc2626;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+    }
+
+    /* ── Table wrapper ── */
+    .table-wrap {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.1);
+      overflow: hidden;
+    }
+    .table-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .table-header h2 { font-size: 1rem; font-weight: 600; }
+    .table-header small { color: #888; font-size: 0.82rem; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    thead th {
+      background: #f9fafb;
+      padding: 10px 14px;
+      text-align: left;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: #6b7280;
+      border-bottom: 1px solid #e5e7eb;
+      white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid #f3f4f6; transition: background .15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f9fafb; }
+    td { padding: 10px 14px; vertical-align: top; }
+
+    .content-cell {
+      max-width: 340px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Status badges ── */
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+    }
+    .badge-APPROVED  { background: #dcfce7; color: #166534; }
+    .badge-REJECTED  { background: #fee2e2; color: #991b1b; }
+    .badge-IN_REVIEW { background: #fef9c3; color: #854d0e; }
+    .badge-REMOVED   { background: #f3f4f6; color: #374151; }
+
+    /* ── Net rating colour ── */
+    .net-pos { color: #16a34a; font-weight: 600; }
+    .net-neg { color: #dc2626; font-weight: 600; }
+    .net-neu { color: #6b7280; }
+
+    /* ── Similarity score bar ── */
+    .sim-wrap { display: flex; align-items: center; gap: 8px; }
+    .sim-bar-bg {
+      flex: 1;
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 3px;
+      overflow: hidden;
+      min-width: 60px;
+    }
+    .sim-bar { height: 100%; border-radius: 3px; }
+    .sim-val { font-size: 0.8rem; white-space: nowrap; }
+    .sim-none { color: #aaa; font-size: 0.8rem; }
+
+    .empty { padding: 48px; text-align: center; color: #9ca3af; }
+  </style>
+</head>
+<body>
+
+<header>
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+  <h1>Thoughts Dashboard</h1>
+  <span>Reporting &mdash; {{ thoughts|length }} records</span>
+</header>
+
+<main>
+
+  {% if error %}
+  <div class="error">
+    <strong>Database error:</strong> {{ error }}
+  </div>
+  {% endif %}
+
+  {% if stats %}
+  <div class="cards">
+    <div class="card total">
+      <div class="num">{{ stats.total }}</div>
+      <div class="lbl">Total</div>
+    </div>
+    <div class="card approved">
+      <div class="num">{{ stats.approved }}</div>
+      <div class="lbl">Approved</div>
+    </div>
+    <div class="card rejected">
+      <div class="num">{{ stats.rejected }}</div>
+      <div class="lbl">Rejected</div>
+    </div>
+    <div class="card review">
+      <div class="num">{{ stats.in_review }}</div>
+      <div class="lbl">In Review</div>
+    </div>
+    <div class="card removed">
+      <div class="num">{{ stats.removed }}</div>
+      <div class="lbl">Removed</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <h2>All Thoughts</h2>
+      <small>Sorted by newest first</small>
+    </div>
+
+    {% if thoughts %}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Content</th>
+          <th>Author</th>
+          <th>Status</th>
+          <th style="text-align:center">Thumbs Up</th>
+          <th style="text-align:center">Thumbs Down</th>
+          <th style="text-align:center">Net Rating</th>
+          <th>Similarity Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in thoughts %}
+        {% set net = t.net_rating %}
+        <tr>
+          <td style="color:#aaa;white-space:nowrap">{{ loop.index }}</td>
+          <td class="content-cell" title="{{ t.content }}">{{ t.content }}</td>
+          <td style="white-space:nowrap">{{ t.author }}</td>
+          <td>
+            <span class="badge badge-{{ t.status }}">{{ t.status }}</span>
+          </td>
+          <td style="text-align:center">{{ t.thumbs_up }}</td>
+          <td style="text-align:center">{{ t.thumbs_down }}</td>
+          <td style="text-align:center">
+            {% if net > 0 %}
+              <span class="net-pos">+{{ net }}</span>
+            {% elif net < 0 %}
+              <span class="net-neg">{{ net }}</span>
+            {% else %}
+              <span class="net-neu">0</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if t.similarity_score is not none %}
+              {% set pct = (t.similarity_score * 100) | round(1) %}
+              {% if t.similarity_score >= 0.85 %}
+                {% set bar_color = "#ef4444" %}
+              {% elif t.similarity_score >= 0.5 %}
+                {% set bar_color = "#f59e0b" %}
+              {% else %}
+                {% set bar_color = "#22c55e" %}
+              {% endif %}
+              <div class="sim-wrap">
+                <div class="sim-bar-bg">
+                  <div class="sim-bar" style="width:{{ pct }}%;background:{{ bar_color }}"></div>
+                </div>
+                <span class="sim-val" style="color:{{ bar_color }}">{{ "%.4f"|format(t.similarity_score) }}</span>
+              </div>
+            {% else %}
+              <span class="sim-none">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="empty">No thoughts found.</div>
+    {% endif %}
+  </div>
+
+</main>
+</body>
+</html>
