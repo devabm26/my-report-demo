@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Thoughts Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6f9; color: #222; }
+
+    header {
+      background: #c00;
+      color: #fff;
+      padding: 1.2rem 2rem;
+    }
+    header h1 { font-size: 1.6rem; font-weight: 700; letter-spacing: 0.02em; }
+    header p  { font-size: 0.85rem; opacity: 0.85; margin-top: 0.2rem; }
+
+    main { padding: 1.5rem 2rem; }
+
+    /* Error banner */
+    .error {
+      background: #ffe0e0; border-left: 4px solid #c00;
+      padding: 1rem 1.2rem; border-radius: 4px; margin-bottom: 1.5rem;
+      font-size: 0.9rem; color: #700;
+    }
+
+    /* Summary cards */
+    .cards {
+      display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+    }
+    .card {
+      background: #fff; border-radius: 6px; padding: 1rem 1.4rem;
+      min-width: 130px; flex: 1;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      border-top: 3px solid #ccc;
+    }
+    .card.total    { border-color: #555; }
+    .card.approved { border-color: #2a9d5c; }
+    .card.rejected { border-color: #c00; }
+    .card.in_review{ border-color: #e09000; }
+    .card.removed  { border-color: #888; }
+
+    .card .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.07em; color: #666; }
+    .card .value { font-size: 2rem; font-weight: 700; margin-top: 0.2rem; }
+    .card.total    .value { color: #333; }
+    .card.approved .value { color: #2a9d5c; }
+    .card.rejected .value { color: #c00; }
+    .card.in_review .value { color: #e09000; }
+    .card.removed  .value { color: #888; }
+
+    /* Table */
+    .table-wrapper {
+      background: #fff; border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      overflow-x: auto;
+    }
+    .table-header {
+      padding: 1rem 1.2rem 0.6rem;
+      border-bottom: 1px solid #eee;
+      display: flex; align-items: baseline; gap: 0.6rem;
+    }
+    .table-header h2 { font-size: 1rem; font-weight: 600; }
+    .table-header span { font-size: 0.8rem; color: #888; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    thead th {
+      background: #f8f8f8; text-align: left;
+      padding: 0.6rem 0.8rem; font-weight: 600;
+      border-bottom: 2px solid #e5e5e5;
+      white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid #f0f0f0; }
+    tbody tr:hover { background: #fafafa; }
+    tbody td { padding: 0.55rem 0.8rem; vertical-align: top; }
+
+    .content-cell { max-width: 380px; }
+    .content-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    /* Status badges */
+    .badge {
+      display: inline-block; padding: 0.18rem 0.55rem;
+      border-radius: 12px; font-size: 0.72rem; font-weight: 600;
+      white-space: nowrap; letter-spacing: 0.04em;
+    }
+    .badge-APPROVED  { background: #d4f4e2; color: #1a7040; }
+    .badge-REJECTED  { background: #fde0e0; color: #a00; }
+    .badge-IN_REVIEW { background: #fff3cc; color: #7a5500; }
+    .badge-REMOVED   { background: #ececec; color: #555; }
+
+    /* Net rating colouring */
+    .positive { color: #2a9d5c; font-weight: 600; }
+    .negative { color: #c00;    font-weight: 600; }
+    .neutral  { color: #888; }
+
+    /* Similarity score bar */
+    .sim-cell { min-width: 90px; }
+    .sim-bar-bg {
+      background: #eee; border-radius: 3px; height: 6px; margin-top: 3px;
+    }
+    .sim-bar { height: 6px; border-radius: 3px; }
+    .sim-low  { background: #2a9d5c; }
+    .sim-mid  { background: #e09000; }
+    .sim-high { background: #c00; }
+
+    .no-data { text-align: center; padding: 2rem; color: #aaa; font-size: 0.9rem; }
+
+    footer { text-align: center; padding: 1.2rem; font-size: 0.75rem; color: #aaa; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Thoughts Dashboard</h1>
+  <p>Reporting view &mdash; {{ thoughts|length }} thoughts loaded</p>
+</header>
+
+<main>
+
+  {% if error %}
+  <div class="error">
+    <strong>Database connection error:</strong> {{ error }}
+  </div>
+  {% endif %}
+
+  <!-- Summary cards -->
+  {% if summary %}
+  <div class="cards">
+    <div class="card total">
+      <div class="label">Total</div>
+      <div class="value">{{ summary.total }}</div>
+    </div>
+    <div class="card approved">
+      <div class="label">Approved</div>
+      <div class="value">{{ summary.approved }}</div>
+    </div>
+    <div class="card rejected">
+      <div class="label">Rejected</div>
+      <div class="value">{{ summary.rejected }}</div>
+    </div>
+    <div class="card in_review">
+      <div class="label">In Review</div>
+      <div class="value">{{ summary.in_review }}</div>
+    </div>
+    <div class="card removed">
+      <div class="label">Removed</div>
+      <div class="value">{{ summary.removed }}</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Thoughts table -->
+  <div class="table-wrapper">
+    <div class="table-header">
+      <h2>All Thoughts</h2>
+      <span>({{ thoughts|length }} rows)</span>
+    </div>
+
+    {% if thoughts %}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Content</th>
+          <th>Author</th>
+          <th>Status</th>
+          <th style="text-align:right">&#128077;</th>
+          <th style="text-align:right">&#128078;</th>
+          <th style="text-align:right">Net</th>
+          <th>Similarity</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in thoughts %}
+        <tr>
+          <td style="color:#aaa">{{ loop.index }}</td>
+          <td class="content-cell">
+            <div class="content-text">{{ t.content }}</div>
+          </td>
+          <td style="white-space:nowrap">{{ t.author }}</td>
+          <td>
+            <span class="badge badge-{{ t.status }}">{{ t.status }}</span>
+          </td>
+          <td style="text-align:right">{{ t.thumbs_up }}</td>
+          <td style="text-align:right">{{ t.thumbs_down }}</td>
+          <td style="text-align:right">
+            {% set net = t.net_rating %}
+            {% if net > 0 %}
+              <span class="positive">+{{ net }}</span>
+            {% elif net < 0 %}
+              <span class="negative">{{ net }}</span>
+            {% else %}
+              <span class="neutral">0</span>
+            {% endif %}
+          </td>
+          <td class="sim-cell">
+            {% if t.similarity_score is not none %}
+              {% set score = t.similarity_score | float %}
+              <span>{{ "%.4f" | format(score) }}</span>
+              <div class="sim-bar-bg">
+                <div class="sim-bar {% if score < 0.5 %}sim-low{% elif score < 0.85 %}sim-mid{% else %}sim-high{% endif %}"
+                     style="width: {{ [score * 100, 100] | min }}%"></div>
+              </div>
+            {% else %}
+              <span style="color:#bbb">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="no-data">No thoughts found.</div>
+    {% endif %}
+  </div>
+
+</main>
+
+<footer>Thoughts Dashboard &mdash; {{ thoughts|length }} records</footer>
+
+</body>
+</html>
