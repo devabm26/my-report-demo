@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Thoughts Dashboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 1.25rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    header h1 { font-size: 1.4rem; font-weight: 600; letter-spacing: 0.02em; }
+    header span { font-size: 1.6rem; }
+
+    .container { max-width: 1400px; margin: 0 auto; padding: 1.5rem 2rem; }
+
+    /* Summary cards */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      border-left: 4px solid #ccc;
+    }
+    .card.total   { border-color: #6c63ff; }
+    .card.approved { border-color: #22c55e; }
+    .card.rejected { border-color: #ef4444; }
+    .card.in_review{ border-color: #f59e0b; }
+    .card.removed  { border-color: #94a3b8; }
+    .card .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 0.35rem; }
+    .card .value { font-size: 2rem; font-weight: 700; }
+    .card.total   .value { color: #6c63ff; }
+    .card.approved .value { color: #22c55e; }
+    .card.rejected .value { color: #ef4444; }
+    .card.in_review .value { color: #f59e0b; }
+    .card.removed  .value { color: #94a3b8; }
+
+    /* Error banner */
+    .error {
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      color: #b91c1c;
+      padding: 0.85rem 1.25rem;
+      border-radius: 8px;
+      margin-bottom: 1.25rem;
+      font-size: 0.9rem;
+    }
+
+    /* Table wrapper */
+    .table-wrap {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.08);
+      overflow-x: auto;
+    }
+    .table-header {
+      padding: 1rem 1.25rem 0.75rem;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .table-header h2 { font-size: 1rem; font-weight: 600; }
+    .table-header .count { font-size: 0.8rem; color: #64748b; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    thead th {
+      background: #f8fafc;
+      padding: 0.65rem 0.9rem;
+      text-align: left;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #64748b;
+      border-bottom: 1px solid #e2e8f0;
+      white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid #f1f5f9; transition: background 0.1s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f8fafc; }
+    td { padding: 0.65rem 0.9rem; vertical-align: top; }
+
+    .content-cell { max-width: 340px; }
+    .content-text {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.45;
+    }
+    .author { color: #475569; font-size: 0.8rem; margin-top: 0.2rem; }
+
+    /* Status badge */
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+    .badge-APPROVED  { background: #dcfce7; color: #166534; }
+    .badge-REJECTED  { background: #fee2e2; color: #991b1b; }
+    .badge-IN_REVIEW { background: #fef9c3; color: #854d0e; }
+    .badge-REMOVED   { background: #f1f5f9; color: #475569; }
+
+    /* Rating cells */
+    .up   { color: #16a34a; font-weight: 600; }
+    .down { color: #dc2626; font-weight: 600; }
+    .net.positive { color: #16a34a; font-weight: 700; }
+    .net.negative { color: #dc2626; font-weight: 700; }
+    .net.zero     { color: #94a3b8; }
+
+    /* Similarity score bar */
+    .sim-wrap { display: flex; align-items: center; gap: 0.45rem; min-width: 110px; }
+    .sim-bar-bg { flex: 1; background: #e2e8f0; border-radius: 999px; height: 6px; overflow: hidden; }
+    .sim-bar { height: 100%; border-radius: 999px; }
+    .sim-val { font-size: 0.78rem; white-space: nowrap; min-width: 44px; text-align: right; }
+
+    .no-data { padding: 3rem; text-align: center; color: #94a3b8; font-size: 0.9rem; }
+
+    footer { text-align: center; padding: 1.5rem; font-size: 0.75rem; color: #94a3b8; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span>&#128161;</span>
+  <h1>Thoughts Dashboard</h1>
+</header>
+
+<div class="container">
+
+  {% if error %}
+  <div class="error"><strong>Database error:</strong> {{ error }}</div>
+  {% endif %}
+
+  {% if summary %}
+  <div class="cards">
+    <div class="card total">
+      <div class="label">Total</div>
+      <div class="value">{{ summary.total }}</div>
+    </div>
+    <div class="card approved">
+      <div class="label">Approved</div>
+      <div class="value">{{ summary.approved }}</div>
+    </div>
+    <div class="card rejected">
+      <div class="label">Rejected</div>
+      <div class="value">{{ summary.rejected }}</div>
+    </div>
+    <div class="card in_review">
+      <div class="label">In Review</div>
+      <div class="value">{{ summary.in_review }}</div>
+    </div>
+    <div class="card removed">
+      <div class="label">Removed</div>
+      <div class="value">{{ summary.removed }}</div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="table-wrap">
+    <div class="table-header">
+      <h2>All Thoughts</h2>
+      <span class="count">{{ thoughts | length }} records</span>
+    </div>
+
+    {% if thoughts %}
+    <table>
+      <thead>
+        <tr>
+          <th>Content / Author</th>
+          <th>Status</th>
+          <th>Thumbs Up</th>
+          <th>Thumbs Down</th>
+          <th>Net Rating</th>
+          <th>Similarity Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in thoughts %}
+        {% set net = t.net_rating %}
+        {% set score = t.similarity_score %}
+        <tr>
+          <td class="content-cell">
+            <div class="content-text">{{ t.content }}</div>
+            <div class="author">{{ t.author }}</div>
+          </td>
+          <td>
+            <span class="badge badge-{{ t.status }}">{{ t.status }}</span>
+          </td>
+          <td class="up">{{ t.thumbs_up }}</td>
+          <td class="down">{{ t.thumbs_down }}</td>
+          <td>
+            <span class="net {% if net > 0 %}positive{% elif net < 0 %}negative{% else %}zero{% endif %}">
+              {% if net > 0 %}+{% endif %}{{ net }}
+            </span>
+          </td>
+          <td>
+            {% if score is not none %}
+            {% set pct = (score * 100) | round(1) %}
+            {% if score < 0.5 %}
+              {% set bar_color = '#22c55e' %}
+            {% elif score < 0.85 %}
+              {% set bar_color = '#f59e0b' %}
+            {% else %}
+              {% set bar_color = '#ef4444' %}
+            {% endif %}
+            <div class="sim-wrap">
+              <div class="sim-bar-bg">
+                <div class="sim-bar" style="width:{{ pct }}%; background:{{ bar_color }};"></div>
+              </div>
+              <span class="sim-val">{{ "%.4f" | format(score | float) }}</span>
+            </div>
+            {% else %}
+            <span style="color:#cbd5e1; font-size:0.8rem;">N/A</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="no-data">No thoughts found{% if error %} — check database connection{% endif %}.</div>
+    {% endif %}
+  </div>
+
+</div>
+
+<footer>Thoughts Dashboard &mdash; {{ thoughts | length }} records loaded</footer>
+
+</body>
+</html>
