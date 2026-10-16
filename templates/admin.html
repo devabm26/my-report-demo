@@ -1,0 +1,230 @@
+{% extends "layout.html" %}
+
+{% block title %}Admin — Thoughts{% endblock %}
+
+{% block content %}
+<div class="page-title">Admin</div>
+<div class="page-sub">Manage thought statuses and remove entries from the database.</div>
+
+{% if error %}
+<div class="error-banner"><strong>DB error:</strong> {{ error }}</div>
+{% endif %}
+
+<!-- Summary cards -->
+{% if summary %}
+<div class="cards">
+  <div class="card total">
+    <div class="c-label">Total</div>
+    <div class="c-value">{{ summary.total }}</div>
+    <div class="c-icon">&#128214;</div>
+  </div>
+  <div class="card approved">
+    <div class="c-label">Approved</div>
+    <div class="c-value">{{ summary.approved }}</div>
+    <div class="c-icon">&#10003;</div>
+  </div>
+  <div class="card rejected">
+    <div class="c-label">Rejected</div>
+    <div class="c-value">{{ summary.rejected }}</div>
+    <div class="c-icon">&#10007;</div>
+  </div>
+  <div class="card in_review">
+    <div class="c-label">In Review</div>
+    <div class="c-value">{{ summary.in_review }}</div>
+    <div class="c-icon">&#9203;</div>
+  </div>
+  <div class="card removed">
+    <div class="c-label">Removed</div>
+    <div class="c-value">{{ summary.removed }}</div>
+    <div class="c-icon">&#128465;</div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Filter bar -->
+<form method="get" action="/admin">
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>Status</label>
+      <select name="status">
+        <option value="">All statuses</option>
+        {% for s in statuses %}
+        <option value="{{ s }}" {% if status_filter == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Search content / author</label>
+      <input type="text" name="search" value="{{ search }}" placeholder="Type to search..." />
+    </div>
+    <div class="filter-actions">
+      <button type="submit" class="btn btn-primary">Apply</button>
+      <a href="/admin" class="btn btn-ghost">Reset</a>
+    </div>
+  </div>
+</form>
+
+<!-- Table -->
+<div class="panel">
+  <div class="panel-header">
+    <h2>Manage Thoughts</h2>
+    <span class="record-count">{{ thoughts | length }} records</span>
+  </div>
+  <div class="table-scroll">
+    {% if thoughts %}
+    <table>
+      <thead>
+        <tr>
+          <th>Content / Author</th>
+          <th>Current Status</th>
+          <th>&#128077; / &#128078;</th>
+          <th>Net</th>
+          <th>Similarity</th>
+          <th>Updated</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in thoughts %}
+        {% set net = t.net_rating %}
+        {% set score = t.similarity_score %}
+        <tr>
+          <td class="content-cell">
+            <div class="content-text">{{ t.content }}</div>
+            <div class="td-author">{{ t.author }}{% if t.author_bio and t.author_bio != 'Unknown' %} &mdash; <em>{{ t.author_bio }}</em>{% endif %}</div>
+          </td>
+          <td><span class="badge badge-{{ t.status }}">{{ t.status.replace('_', ' ') }}</span></td>
+          <td>
+            <span class="rating-up">{{ t.thumbs_up }}</span>
+            /
+            <span class="rating-down">{{ t.thumbs_down }}</span>
+          </td>
+          <td>
+            <span class="{% if net > 0 %}net-pos{% elif net < 0 %}net-neg{% else %}net-zero{% endif %}">
+              {% if net > 0 %}+{% endif %}{{ net }}
+            </span>
+          </td>
+          <td>
+            {% if score is not none %}
+              {% set pct = (score * 100) | round(1) %}
+              {% if score < 0.5 %}{% set color = '#22c55e' %}
+              {% elif score < 0.85 %}{% set color = '#f59e0b' %}
+              {% else %}{% set color = '#ef4444' %}{% endif %}
+              <div class="sim-wrap">
+                <div class="sim-track">
+                  <div class="sim-fill" style="width:{{ pct }}%; background:{{ color }};"></div>
+                </div>
+                <span class="sim-val">{{ "%.4f"|format(score|float) }}</span>
+              </div>
+            {% else %}
+              <span style="color:var(--border)">—</span>
+            {% endif %}
+          </td>
+          <td style="font-size:0.75rem; color:var(--muted); white-space:nowrap;">
+            {{ t.updated_at.strftime('%Y-%m-%d %H:%M') if t.updated_at else '—' }}
+          </td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-sm btn-primary"
+              onclick="openStatusModal('{{ t.id }}', '{{ t.status }}', {{ t.content | tojson }})">
+              Change Status
+            </button>
+            <button class="btn btn-sm btn-danger"
+              onclick="openDeleteModal('{{ t.id }}', {{ t.content | tojson }})">
+              Delete
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      <p>No thoughts match the current filters.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Status change modal -->
+<div class="modal-overlay" id="statusModal">
+  <div class="modal">
+    <h3>Change Status</h3>
+    <p class="modal-sub" id="statusModalContent"></p>
+    <form method="post" action="/admin/update_status">
+      <input type="hidden" name="thought_id" id="statusThoughtId" />
+      <input type="hidden" name="status_filter" value="{{ status_filter }}" />
+      <input type="hidden" name="search" value="{{ search }}" />
+      <div class="form-group">
+        <label>New Status</label>
+        <select name="status" id="statusSelect">
+          {% for s in statuses %}
+          <option value="{{ s }}">{{ s.replace('_', ' ') }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('statusModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Update</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Delete confirmation modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <h3>Delete Thought</h3>
+    <p class="modal-sub" id="deleteModalContent">
+      This will permanently delete the thought and all its evaluation records. This cannot be undone.
+    </p>
+    <form method="post" action="/admin/delete">
+      <input type="hidden" name="thought_id" id="deleteThoughtId" />
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('deleteModal')">Cancel</button>
+        <button type="submit" class="btn btn-danger">Delete permanently</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  function openStatusModal(id, currentStatus, content) {
+    document.getElementById('statusThoughtId').value = id;
+    document.getElementById('statusModalContent').textContent =
+      content.length > 100 ? content.slice(0, 100) + '…' : content;
+    const sel = document.getElementById('statusSelect');
+    for (let opt of sel.options) {
+      opt.selected = opt.value === currentStatus;
+    }
+    document.getElementById('statusModal').classList.add('open');
+  }
+
+  function openDeleteModal(id, content) {
+    document.getElementById('deleteThoughtId').value = id;
+    document.getElementById('deleteModalContent').textContent =
+      'Delete: "' + (content.length > 80 ? content.slice(0,80) + '…' : content) +
+      '"? This will also remove all evaluation records.';
+    document.getElementById('deleteModal').classList.add('open');
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+
+  // Close on backdrop click
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', e => {
+      if (e.target === el) el.classList.remove('open');
+    });
+  });
+
+  // Close on Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.open').forEach(el => el.classList.remove('open'));
+    }
+  });
+</script>
+{% endblock %}
